@@ -12,6 +12,7 @@ Match _$MatchFromJson(Map<String, dynamic> json) {
       month: json['month'] as int,
       day: json['day'] as int,
       level: json['level'] as int,
+      Captain:json['Captain'] as String,
       players: json['players'] as List<String>);
 }
 
@@ -20,5 +21,6 @@ Map<String, dynamic> _$MatchToJson(Match instance) => <String, dynamic>{
   'month': instance.month,
   'day': instance.day,
   'level': instance.level,
+  'Captain' :instance.Captain,
   'players': instance.players
 };

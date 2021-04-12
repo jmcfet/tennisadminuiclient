@@ -21,4 +21,14 @@ class UserRepository{
     return _apiProvider.getAllMatchs( );
   }
 
+  Future<bool> freezedatabase() async{
+    bool y = true;
+    return _apiProvider.freezedatabase(y );
+  }
+  Future<bool> zeroCaptainCount() async{
+
+    return _apiProvider.zeroCaptainCount();
+  }
+
+
 }

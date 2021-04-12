@@ -1,4 +1,6 @@
 import 'package:adminui/models/BookedDatesResponse.dart';
+import 'package:adminui/showMenu.dart';
+import 'package:flutter/foundation.dart';
 
 //import 'package:adminui/models/playerinfo.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class _adminuiState extends State<adminui> {
   List<PlayersinfoandBookedDates> Doubles;
 
   List<List<PlayersinfoandBookedDates>> columnData = [];
+  List<bool> hasCaptain = List<bool>(100);
   final UserRepository _repository = UserRepository();
   List<Calendar> _DatesMonth;
   DateTime picked;
@@ -50,7 +53,9 @@ class _adminuiState extends State<adminui> {
   @override
   void initState() {
     super.initState();
-
+    for (int i = 0; i < 12; i++) {
+      hasCaptain[i] = false;
+    }
     getMatchs();
   }
 
@@ -65,7 +70,7 @@ class _adminuiState extends State<adminui> {
     return Scaffold(
         appBar: AppBar(
             title: Text("Landings"),
-            leading: Icon(Icons.menu),
+
             backgroundColor: Colors.redAccent,
             actions: <Widget>[
               IconButton(icon: Icon(Icons.save), onPressed: () => {save()}),
@@ -75,7 +80,9 @@ class _adminuiState extends State<adminui> {
               //             IconButton(icon: Icon(Icons.add), onPressed: () => {addColumn()}),
               IconButton(icon: Icon(Icons.account_circle), onPressed: () => {})
             ]),
-        body: Row(children: BuildColumns()));
+        drawer: showMyMenu(context,[1,2,3],_repository),
+        body: Row(children: BuildColumns())
+    );
   }
 
   void onReorder(int oldIndex, int newIndex) {
@@ -91,7 +98,9 @@ class _adminuiState extends State<adminui> {
       info.insert(newIndex, u);
     });
   }
-
+  setFreeze() async{
+    await _repository.freezedatabase();
+  }
   newMonth() async {
     List<Widget> items = [];
     int count = 1;
@@ -122,7 +131,7 @@ class _adminuiState extends State<adminui> {
 
     setState(() {
       //each match has a list of 4 players. add N previous days of matchs so admin can see previous bookings
-      Iterable reversed = allmatchs.reversed;
+   /*   Iterable reversed = allmatchs.reversed;
       Iterator iter = reversed.iterator;
       List<PlayersinfoandBookedDates> playersforday = [];
       int ii = 0;
@@ -150,7 +159,7 @@ class _adminuiState extends State<adminui> {
         ii = 1;
       }
       if (playersforday.length > 0)
-        columnData.insert(0, playersforday);
+        columnData.insert(0, playersforday);   */
       columnData.add(getPlayersforDay(bookingsresp.datesandstatus, picked));
     });
   }
@@ -160,7 +169,7 @@ class _adminuiState extends State<adminui> {
 
     setState(() {
       columnData
-          .add(getPlayersforDay(bookingsresp.datesandstatus, selectedDate));
+          .add(getPlayersforDay(bookingsresp.datesandstatus, picked));
     });
   }
 
@@ -257,20 +266,26 @@ class _adminuiState extends State<adminui> {
     int count = 1;
     int playercnt = 0;
     List<String> players = [];
+    String Captain = "not";
     for (int i = 0; i < info.length; i++) {
       double width = 0;
 
+      if (info[i].bIsCaptain)
+         Captain = info[i].Name;
       players.add(info[i].Name);
       if (count % 4 == 0) {
         Match m = new Match();
         m.id = 1;
-        m.day = selectedDate.day;
-        m.month = selectedDate.month;
+        m.day = picked.day;
+        m.month = picked.month;
         m.level = 1;
-        m.Captain = "cap";
+        m.Captain = Captain;
+
+
         m.players = players;
         matches.add(m);
         players = [];
+        Captain = "not";
       }
       ;
 
@@ -279,12 +294,12 @@ class _adminuiState extends State<adminui> {
     response = await _repository.saveMatches(matches);
     //the first column becomes new day to be editted
     _DatesMonth.removeAt(0);
-    selectedDate = _DatesMonth.first.date;
+    picked = _DatesMonth.first.date;
     for (int i = 0; i < _DatesMonth.length; i++) {
       if (_DatesMonth[i].date.weekday == 1 ||
           _DatesMonth[i].date.weekday == 3 ||
           _DatesMonth[i].date.weekday == 5) {
-        selectedDate = _DatesMonth[i].date;
+        picked = _DatesMonth[i].date;
         break;
       }
     }
@@ -319,16 +334,41 @@ class _adminuiState extends State<adminui> {
     if (day.weekday == 1 || day.weekday == 3 || day.weekday == 5) return true;
     return false;
   }
-
-  List<Widget> getPlayers(
-      List<PlayersinfoandBookedDates> playersforday, int col, editablecol) {
+  void _showDialog(String err) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("internal logic error"),
+          content: new Text(err),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  List<Widget> getPlayers(  List<PlayersinfoandBookedDates> playersforday, int col, editablecol) {
     List<Widget> items = [];
+
     int count = 1;
+    int teams = 0;
     var back = Colors.black;
     if (col != editablecol) back = Colors.grey;
     for (int i = 0; i < playersforday.length; i++) {
       double width = 0;
-      if (count % 4 == 0) width = 16;
+      //can only have one captain per team
+      if (count % 4 == 0)
+        width = 16;
+
       count++;
       var temp = Column(
         key: ValueKey(i),
@@ -352,23 +392,41 @@ class _adminuiState extends State<adminui> {
                     fit: FlexFit.tight,
                     child: Text(playersforday[i].Name)),
                 col == editablecol
-                    ? Flexible(flex: 1, fit: FlexFit.tight, child: Text("0"))
+                    ? Flexible(flex: 1,
+                    fit: FlexFit.tight,
+                    child: Text(playersforday[i].timesCaptain.toString()))
                     : Container(),
                 col == editablecol
                     ? Flexible(flex: 1, fit: FlexFit.tight, child: Text("1"))
                     : Container(),
                 col == editablecol
                     ? Flexible(
-                        flex: 1,
-                        fit: FlexFit.tight,
-                        child: Checkbox(
-                            value: playersforday[i].bIsCaptain,
-                            onChanged: (value) {
-                              setState(() {
-                                playersforday[i].bIsCaptain =
-                                    !playersforday[i].bIsCaptain;
-                              });
-                            }))
+                    flex: 1,
+                    fit: FlexFit.tight,
+                    child: Checkbox(
+                        value: playersforday[i].bIsCaptain,
+                        onChanged: (value) {
+                          setState(() {
+                            int teamnumber =(i~/4);
+                            bool captainassigned = hasCaptain[teamnumber];
+
+                            if (value) {
+                              if (captainassigned){
+                                _showDialog("only one captain per team");
+                                return;
+                              }
+
+                              playersforday[i].timesCaptain += 1;
+                              hasCaptain[teamnumber] = true;
+                            }
+                            else {
+                              playersforday[i].timesCaptain -= 1;
+                              hasCaptain[teamnumber] = false;
+                            }
+                            playersforday[i].bIsCaptain =
+                            !playersforday[i].bIsCaptain;
+                          });
+                        }))
                     : Container(),
               ]),
               //    controlAffinity: ListTileControlAffinity.leading,
@@ -390,6 +448,8 @@ class _adminuiState extends State<adminui> {
       );
       items.add(temp);
     }
+
+
     return items;
   }
 }

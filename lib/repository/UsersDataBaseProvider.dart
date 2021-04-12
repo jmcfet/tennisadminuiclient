@@ -126,6 +126,74 @@ class UsersDBProvider {
 
     return resp;
   }
+
+  Future<bool>  freezedatabase(bool state) async {
+
+    var response;
+    String list;
+    var queryParameters1 = {
+      'state': 'true',
+
+    };
+    //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
+ //   String authorization = 'Bearer ' + Globals.token;
+    Map usermap;
+    try {
+      var url = new Uri(scheme: 'http',
+          host: 'localhost',
+          port: 52175,
+          path: '/api/Account/freezedatabase',
+          queryParameters:queryParameters1
+      );
+
+
+      response = await http.post(url
+  //        headers: {HttpHeaders.authorizationHeader: authorization}
+
+      );
+      String test = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+
+      return false;
+    }
+
+    return  true;
+    //   return resp;
+  }
+
+  Future<bool>  zeroCaptainCount() async {
+    var response;
+    String list;
+
+    //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
+    //   String authorization = 'Bearer ' + Globals.token;
+    Map usermap;
+    try {
+      var url = new Uri(scheme: 'http',
+          host: 'localhost',
+          port: 52175,
+          path: '/api/Account/zeroCaptainCounts',
+
+      );
+
+
+      response = await http.post(url
+        //        headers: {HttpHeaders.authorizationHeader: authorization}
+
+      );
+      String test = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+
+      return false;
+    }
+
+    return  true;
+    //   return resp;
+  }
 }
 
 

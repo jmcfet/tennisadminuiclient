@@ -7,7 +7,7 @@ PlayersinfoandBookedDates _$PlayersinfoandBookedDatesFromJson(Map<String, dynami
       Month: json['month'] as int,
       status: json['status'] as String,
       level: json['level'] as int,
-      timesCaptain: json['level'] as int,
+      timesCaptain: json['numTimesCaptain'] as int,
       bIsCaptain: json['isCaptain'] as bool);
 }
 
@@ -19,5 +19,5 @@ Map<String, dynamic> _$PlayersinfoandBookedDatesToJson(PlayersinfoandBookedDates
 //  'Email': instance.Email,
    'level': instance.level,
   'isCaptain': instance.bIsCaptain,
-  'timesCaptain': instance.timesCaptain
+  'numTimesCaptain': instance.timesCaptain
 };
