@@ -16,8 +16,9 @@ class CustomCalendar{
   }
 
   /// get the month calendar
-  /// month is between from 1-12 (1 for January and 12 for December)
-  List<Calendar> getMonthCalendar(int month, int year, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
+  /// month is between from 1-12 (1 for January and 12 for December) . we will exclude days other than
+  /// M-W-F and those days that already have matchs
+  List<Calendar> getMonthCalendar(int month, int day,int year, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
 
     // validate
     if(year == null || month == null || month < 1 || month > 12) throw ArgumentError('Invalid year or month');
@@ -38,9 +39,9 @@ class CustomCalendar{
     // get this month's calendar days
     for(int i=0; i<totalDays; i++){
       DateTime temp = DateTime(year, month, i+1);
-      if (temp.weekday == 1 ||
+      if ((temp.weekday == 1 ||
           temp.weekday == 3 ||
-          temp.weekday == 5
+          temp.weekday == 5) && i >= day-1
       )
       calendar.add(
         Calendar(

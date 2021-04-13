@@ -34,6 +34,8 @@ class _adminuiState extends State<adminui> {
   List<Calendar> _DatesMonth;
   DateTime picked;
   int activeDay = 0;
+  bool saveBtnswitchState = false;
+  bool startBtnswitchState = true;
   List<Match> allmatchs = [];
   List months = [
     'jan',
@@ -69,17 +71,21 @@ class _adminuiState extends State<adminui> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: Text("Landings"),
+            title: Text("Landings Team Setup "),
 
             backgroundColor: Colors.redAccent,
             actions: <Widget>[
-              IconButton(icon: Icon(Icons.save), onPressed: () => {save()}),
-              IconButton(
-                  icon: Icon(Icons.add_to_home_screen),
-                  onPressed: () => {newMonth()}),
-              //             IconButton(icon: Icon(Icons.add), onPressed: () => {addColumn()}),
-              IconButton(icon: Icon(Icons.account_circle), onPressed: () => {})
-            ]),
+
+            ElevatedButton(
+            style:ElevatedButton.styleFrom(
+            primary: Colors.redAccent),
+            child: Text("Start", style: TextStyle(fontSize: 20,color:Colors.white )),
+            onPressed: startBtnswitchState ?  () => {newMonth()} : null
+            ),
+            IconButton(icon: Icon(Icons.save), onPressed: saveBtnswitchState ? () => {save()} :null),
+
+           ]
+        ),
         drawer: showMyMenu(context,[1,2,3],_repository),
         body: Row(children: BuildColumns())
     );
@@ -101,11 +107,13 @@ class _adminuiState extends State<adminui> {
   setFreeze() async{
     await _repository.freezedatabase();
   }
+
   newMonth() async {
     List<Widget> items = [];
     int count = 1;
     int day;
-    //we want the calendar to start on first MWF that does not have matchs
+    //we want the calendar to start on first MWF that does not have matchs and must do this step as
+    //the datepicker will throw if start date is not one of the selectableDayPredicate (nuts)
     DateTime start = DateTime.now();
     for (int i = 0; i < 31; i++) {
      if (_decideWhichDayToEnable(start))
@@ -119,10 +127,11 @@ class _adminuiState extends State<adminui> {
       // Refer step 1
       firstDate: DateTime(2000),
       lastDate: DateTime(2025),
-
+        selectableDayPredicate: _decideWhichDayToEnable
     );
+    //get the bookable days in the month
     _DatesMonth = CustomCalendar().getMonthCalendar(
-        picked.month, DateTime.now().year,
+        picked.month,picked.day, DateTime.now().year,
         startWeekDay: StartWeekDay.monday);
     //find the first MWF of selected  month
 
@@ -130,6 +139,8 @@ class _adminuiState extends State<adminui> {
     bookingsresp = await _repository.getMonthStatus(picked.month.toString());
 
     setState(() {
+      startBtnswitchState = false;
+      saveBtnswitchState = true;
       //each match has a list of 4 players. add N previous days of matchs so admin can see previous bookings
    /*   Iterable reversed = allmatchs.reversed;
       Iterator iter = reversed.iterator;
@@ -303,6 +314,7 @@ class _adminuiState extends State<adminui> {
         break;
       }
     }
+
     addColumn();
   }
 

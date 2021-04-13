@@ -11,8 +11,8 @@ MatchDTO _$MatchDTOFromJson(Map<String, dynamic> json) {
       id: json['id'] as int,
       month: json['month'] as int,
       day: json['day'] as int,
-      level: json['level'] as int,
-      players: json['players'] as String);
+      level: json['level'] as int);
+   //   players: json['players'] as String);
 }
 
 Map<String, dynamic> _$MatchDTOToJson(MatchDTO instance) => <String, dynamic>{

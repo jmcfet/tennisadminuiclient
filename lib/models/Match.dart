@@ -16,8 +16,17 @@ class Match{
 
   Match({this.id,this.month,this.day,this.level,this.Captain,this.players});
 
-  factory Match.fromJson(Map<String, dynamic> json) =>
-      _$MatchFromJson(json);
+  Match.fromJSON(Map<String, dynamic> json) {
+
+    id =  json['id'] as int ;
+    month =  json['month'] as int;
+    day =  json['day'] as int;
+    level =  json['level'] as int;
+    var playersJSON = json['players'];
+    Captain = json['Captain'] as String;
+    players = new List<String>.from(playersJSON);
+
+  }
   Map<String, dynamic> toJson() => _$MatchToJson(this);
 
 }

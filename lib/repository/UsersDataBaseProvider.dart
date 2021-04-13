@@ -89,13 +89,8 @@ class UsersDBProvider {
       resp.error = error;
       return resp;
     }
-    List<MatchDTO> temp  = list.map((model) => MatchDTO.fromJson(model)).toList();
-    resp.matches = List();
-    temp.forEach((MatchDTO dto  ) {
-      Match m = new Match(day:dto.day, month: dto.month, level: dto.level );
-     m.players = dto.players.split(',');
-     resp.matches.add(m);
-    });
+    resp.matches  = list.map((model) => Match.fromJSON(model)).toList();
+
     return resp;
   }
   Future<UsersResponse>  saveMatches(List<Match> matches) async {
