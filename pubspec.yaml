@@ -24,6 +24,8 @@ dependencies:
   json_annotation: ^2.0.0
   http: ^0.12.0
   rxdart: ^0.20.0
+  syncfusion_flutter_datagrid:
+    path: C:\Program Files (x86)\Syncfusion\Essential Studio\Flutter\19.1.0.54\Packages\flutter_datagrid
   flutter:
     sdk: flutter
 

@@ -12,6 +12,7 @@ import 'package:adminui/models/PlayersinfoandBookedDate.dart';
 import 'package:adminui/models/playerinfo.dart';
 import 'package:adminui/Calendar.dart';
 import 'dart:convert';
+import "package:adminui/UserMatchsGrid.dart";
 
 class adminui extends StatefulWidget {
   @override
@@ -36,6 +37,7 @@ class _adminuiState extends State<adminui> {
   int activeDay = 0;
   bool saveBtnswitchState = false;
   bool startBtnswitchState = true;
+  bool gridBtnswitchState = true;
   List<Match> allmatchs = [];
   List months = [
     'jan',
@@ -75,8 +77,14 @@ class _adminuiState extends State<adminui> {
 
             backgroundColor: Colors.redAccent,
             actions: <Widget>[
-
-            ElevatedButton(
+      //        IconButton(icon: Icon(Icons.calendar_today), onPressed: showGrid()),
+              ElevatedButton(
+                  style:ElevatedButton.styleFrom(
+                      primary: Colors.redAccent),
+                  child: Text("Grid", style: TextStyle(fontSize: 20,color:Colors.white )),
+                  onPressed: gridBtnswitchState ?  () => {showGrid()} : null
+              ),
+              ElevatedButton(
             style:ElevatedButton.styleFrom(
             primary: Colors.redAccent),
             child: Text("Start", style: TextStyle(fontSize: 20,color:Colors.white )),
@@ -87,7 +95,15 @@ class _adminuiState extends State<adminui> {
            ]
         ),
         drawer: showMyMenu(context,[1,2,3],_repository),
-        body: Row(children: BuildColumns())
+        body:
+        SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child:
+                      Row(children: BuildColumns())
+             //       )
+        )
+       // )
+
     );
   }
 
@@ -183,6 +199,21 @@ class _adminuiState extends State<adminui> {
           .add(getPlayersforDay(bookingsresp.datesandstatus, picked));
     });
   }
+  showGrid(){
+    List<Match> matchs = allmatchs.where((element) => element.month == 5).toList();
+    Navigator.push(
+        context,
+        MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
+            builder: (context) => UserMatchsDataGrid(matchs)
+
+
+        )
+    );
+
+
+
+
+  }
 
   List<Widget> BuildColumns() {
     var widg3;
@@ -203,7 +234,8 @@ class _adminuiState extends State<adminui> {
       if (col != editablecol) width = 200;
       widg3 =
           new Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        //       Expanded(
+      //         Expanded(
+   //           child:
         Container(
             width: width,
             height: 70,
@@ -267,7 +299,7 @@ class _adminuiState extends State<adminui> {
       col++;
       dayInfo.add(widg3);
     }
-    ;
+
     return dayInfo;
   }
 
