@@ -11,14 +11,14 @@ class User{
   String Id;
   String Name;
   String Email;
-
+  String userid;
   int level;
 
   int  timesCaptain;
 
 
   User({this.Id,this.Email,
-    this.Name,this.level,this.timesCaptain});
+    this.Name,this.level,this.timesCaptain,this.userid});
 
   factory User.fromJson(Map<String, dynamic> json) =>
       _$UserFromJson(json);

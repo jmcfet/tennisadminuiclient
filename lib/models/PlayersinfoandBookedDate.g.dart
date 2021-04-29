@@ -3,7 +3,7 @@ part of 'PlayersinfoandBookedDate.dart';
 PlayersinfoandBookedDates _$PlayersinfoandBookedDatesFromJson(Map<String, dynamic> json) {
   return PlayersinfoandBookedDates(
       Id: json['Id'] as int,
-      Name: json['Name'] as String,
+      Name: json['memberName'] as String,
       Month: json['month'] as int,
       status: json['status'] as String,
       level: json['level'] as int,
@@ -13,7 +13,7 @@ PlayersinfoandBookedDates _$PlayersinfoandBookedDatesFromJson(Map<String, dynami
 
 Map<String, dynamic> _$PlayersinfoandBookedDatesToJson(PlayersinfoandBookedDates instance) => <String, dynamic>{
   'Id': instance.Id,
-  'Name': instance.Name,
+  'memberName': instance.Name,
   'month': instance.Month,
   'status': instance.status,
 //  'Email': instance.Email,
