@@ -9,7 +9,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 class UsersDBProvider {
-  final String _endpoint = "http://localhost:52175/";
+  String scheme = 'https';
+//  String server = 'landingstennis.com';
+
+  String server = 'localhost';
+  int port = 44330;
 
 
   UsersDBProvider() {
@@ -21,9 +25,9 @@ class UsersDBProvider {
     UsersResponse resp = new UsersResponse();
     var response;
     Iterable list;
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port: port,
 
       path: '/api/Account/getUsers',
     );
@@ -49,9 +53,9 @@ class UsersDBProvider {
       'month': month
 
     };
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port:port,
 
       path: '/api/Account/GetMonthStatus',
       queryParameters:queryParameters1
@@ -73,9 +77,9 @@ class UsersDBProvider {
     var response;
     Iterable list;
 
-    var url = new Uri(scheme: 'http',
-        host: 'localhost',
-        port: 52175,
+    var url = new Uri(scheme: scheme,
+        host: server,
+        port: port,
 
         path: '/api/Account/GetAllMatchs',
 
@@ -98,9 +102,9 @@ class UsersDBProvider {
     String js = jsonEncode(matches);
     var response;
     Iterable list;
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port: port,
 
       path: '/api/Account/Matches',
     );
@@ -134,9 +138,9 @@ class UsersDBProvider {
  //   String authorization = 'Bearer ' + Globals.token;
     Map usermap;
     try {
-      var url = new Uri(scheme: 'http',
-          host: 'localhost',
-          port: 52175,
+      var url = new Uri(scheme: scheme,
+          host: server,
+          port: port,
           path: '/api/Account/freezedatabase',
           queryParameters:queryParameters1
       );
@@ -166,9 +170,9 @@ class UsersDBProvider {
     //   String authorization = 'Bearer ' + Globals.token;
     Map usermap;
     try {
-      var url = new Uri(scheme: 'http',
-          host: 'localhost',
-          port: 52175,
+      var url = new Uri(scheme: scheme,
+          host: server,
+          port: port,
           path: '/api/Account/zeroCaptainCounts',
 
       );

@@ -82,20 +82,23 @@ class _UserMatchsState extends State<UserMatchsDataGrid> {
         int num = 0;
         _tennisDataGridSource.columns.forEach((column)
         {
-          int columnNum =  int.tryParse (column) ?? -1;
+          int columnNum =  int.tryParse (column) ?? -1;  //is this a predefined column (Name,email)
           if (columnNum >= 0) {
             List<Match> matchsforday = matchs.where((element) =>
             element.day.toString() == column).toList();
             int iNumMatch = 0;
+            //we are processing member by member . look thru the matchs for this day and see if member is
+            //in the match and if they are the captain
             matchsforday.forEach((matchforday) {
               iNumMatch++;
               for (int ii = 0; ii < 4; ii++) {
                 User user = allusers.where((u) => u.Email == matchforday.players[ii] ).single;
                 if (user.Name == playerinfo.name) {
                   playerinfo.matches[columnNum] = iNumMatch;
-                  if (matchforday.players[ii] == matchforday.Captain)
+                  if (playerinfo.name == matchforday.Captain) {
                     playerinfo.CaptainthatDay[columnNum] = 1;
-                  break;
+                  }
+
                 }
               }
             });
@@ -110,6 +113,8 @@ class _UserMatchsState extends State<UserMatchsDataGrid> {
 
   @override
   Widget build(BuildContext context) {
+   if (_tennisDataGridSource == null)
+     return Container();
     return Scaffold(
         appBar: AppBar(
           title: Text('Match info for May'),
@@ -171,19 +176,22 @@ class TennisDataGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    var playerName = row.getCells()[0].value;
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((dataGridCell) {
           Color getColor() {
             int columnNum = int.tryParse(dataGridCell.columnName) ?? -1;
             if (columnNum != -1) {
-              PlayerData data = allPlayers[0];
+              PlayerData data = allPlayers.where((element) => element.name == playerName).single;;
               if (data.CaptainthatDay[columnNum] == 1)
-                return Colors.tealAccent;
+                return Colors.blue;
 
             }
+            if (columnNum == -1)
+              return Colors.grey;
             return Colors.transparent;
           }
-
+          var tt =   dataGridCell.value != '-1' ? dataGridCell.value : '-';
 
           return Container(
               color: getColor(),
@@ -193,7 +201,7 @@ class TennisDataGridSource extends DataGridSource {
               child: Center(
                 child:Text(
 
-                  dataGridCell.value.toString(),
+                  dataGridCell.value != '-1' ? dataGridCell.value : '-',
                   textAlign:TextAlign.center,
                   overflow: TextOverflow.ellipsis,
 

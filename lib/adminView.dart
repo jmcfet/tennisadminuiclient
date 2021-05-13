@@ -200,7 +200,7 @@ class _adminuiState extends State<adminui> {
     });
   }
   showGrid(){
-    List<Match> matchs = allmatchs.where((element) => element.month == 5).toList();
+    List<Match> matchs = allmatchs.where((element) => element.month == 6).toList();
     Navigator.push(
         context,
         MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
@@ -314,8 +314,8 @@ class _adminuiState extends State<adminui> {
       double width = 0;
 
       if (info[i].bIsCaptain)
-         Captain = info[i].Name;
-      players.add(info[i].Name);
+         Captain = info[i].user.Name;
+      players.add(info[i].user.Name);
       if (count % 4 == 0) {
         Match m = new Match();
         m.id = 1;
@@ -346,7 +346,10 @@ class _adminuiState extends State<adminui> {
         break;
       }
     }
-
+    //no captains assigned by default
+    for (int i = 0; i < 12; i++) {
+      hasCaptain[i] = false;
+    }
     addColumn();
   }
 
@@ -357,18 +360,12 @@ class _adminuiState extends State<adminui> {
     for (int i = 0; i < datesandstatus.length; i++) {
       List<String> daystatus = datesandstatus[i].status.split(',');
       if (daystatus[selectedDate.day] != '0') continue;
-      //clone the PlayersinfoandBookedDates object
-      String js = jsonEncode(datesandstatus[i]);
-      Map json = jsonDecode(js);
-      PlayersinfoandBookedDates playerinfo =
-          PlayersinfoandBookedDates.fromJson(json);
-      //    playerinfo = json.decode(json.encode(datesandstatus[i]));
-      playerinfo.Id = i;
-      playerinfo.day = selectedDate.day;
-      playerinfo.Month = selectedDate.month;
-      playersforday.add(playerinfo);
+      datesandstatus[i].bIsCaptain = false;
+      datesandstatus[i].day = selectedDate.day;
+      playersforday.add(datesandstatus[i]);
     }
-    return playersforday;
+    playersforday.sort((a, b) => a.user.level.compareTo(b.user.level));;
+    return playersforday;;
   }
 
   bool _decideWhichDayToEnable(DateTime day) {
@@ -434,14 +431,14 @@ class _adminuiState extends State<adminui> {
                 Flexible(
                     flex: 3,
                     fit: FlexFit.tight,
-                    child: Text(playersforday[i].Name)),
+                    child: Text(playersforday[i].user.Name)),
                 col == editablecol
                     ? Flexible(flex: 1,
                     fit: FlexFit.tight,
-                    child: Text(playersforday[i].timesCaptain.toString()))
+                    child: Text(playersforday[i].user.timesCaptain.toString()))
                     : Container(),
                 col == editablecol
-                    ? Flexible(flex: 1, fit: FlexFit.tight, child: Text("1"))
+                    ? Flexible(flex: 1, fit: FlexFit.tight, child: Text(playersforday[i].user.level.toString()))
                     : Container(),
                 col == editablecol
                     ? Flexible(
@@ -460,11 +457,11 @@ class _adminuiState extends State<adminui> {
                                 return;
                               }
 
-                              playersforday[i].timesCaptain += 1;
+                              playersforday[i].user.timesCaptain += 1;
                               hasCaptain[teamnumber] = true;
                             }
                             else {
-                              playersforday[i].timesCaptain -= 1;
+                              playersforday[i].user.timesCaptain -= 1;
                               hasCaptain[teamnumber] = false;
                             }
                             playersforday[i].bIsCaptain =
