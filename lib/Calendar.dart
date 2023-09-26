@@ -66,7 +66,7 @@ class Calendar{
   final bool nextMonth;
   int state;
   Calendar({
-    this.date,
+    required this.date,
     this.thisMonth = false,
     this.prevMonth = false,
     this.nextMonth = false,

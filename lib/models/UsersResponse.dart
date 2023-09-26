@@ -2,8 +2,8 @@ import 'package:adminui/models/User.dart';
 
 
 class UsersResponse {
-  List<User> users;
-  String error;
+  late List<User> users;
+  String error = '';
 
 
   UsersResponse();

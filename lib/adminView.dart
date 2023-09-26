@@ -12,7 +12,8 @@ import 'package:adminui/models/PlayersinfoandBookedDate.dart';
 import 'package:adminui/models/playerinfo.dart';
 import 'package:adminui/Calendar.dart';
 import 'dart:convert';
-import "package:adminui/UserMatchsGrid.dart";
+
+//at end of the year look for hardcoded date
 
 class adminui extends StatefulWidget {
   @override
@@ -23,22 +24,23 @@ class _adminuiState extends State<adminui> {
   bool _value = false;
   int index = -1;
 
-  UsersResponse response;
-  BookedDatesResponse bookingsresp;
+  late UsersResponse response;
+  late BookedDatesResponse bookingsresp;
 
   DateTime selectedDate = DateTime.now();
-  List<PlayersinfoandBookedDates> Doubles;
+  late List<PlayersinfoandBookedDates> Doubles;
 
   List<List<PlayersinfoandBookedDates>> columnData = [];
-  List<bool> hasCaptain = List<bool>(100);
+  List<bool> hasCaptain = new List<bool>.filled(12, false);
   final UserRepository _repository = UserRepository();
-  List<Calendar> _DatesMonth;
-  DateTime picked;
+  List<Calendar>? _DatesMonth;
+   DateTime? picked;
   int activeDay = 0;
   bool saveBtnswitchState = false;
   bool startBtnswitchState = true;
   bool gridBtnswitchState = true;
   List<Match> allmatchs = [];
+  List<DateTime> dates = [];
   List months = [
     'jan',
     'feb',
@@ -53,6 +55,7 @@ class _adminuiState extends State<adminui> {
     'nov',
     'dec'
   ];
+  int yearofmatch = 2023;
 
   @override
   void initState() {
@@ -60,13 +63,7 @@ class _adminuiState extends State<adminui> {
     for (int i = 0; i < 12; i++) {
       hasCaptain[i] = false;
     }
-    getMatchs();
-  }
-
-  Future<List<Match>> getMatchs() async {
-    var resp = await _repository.getAllMatchs();
-    allmatchs = resp.matches;
-    return resp.matches;
+    //   getMatchs();
   }
 
   @override
@@ -74,37 +71,28 @@ class _adminuiState extends State<adminui> {
     return Scaffold(
         appBar: AppBar(
             title: Text("Landings Team Setup "),
-
             backgroundColor: Colors.redAccent,
             actions: <Widget>[
-      //        IconButton(icon: Icon(Icons.calendar_today), onPressed: showGrid()),
-              ElevatedButton(
-                  style:ElevatedButton.styleFrom(
-                      primary: Colors.redAccent),
-                  child: Text("Grid", style: TextStyle(fontSize: 20,color:Colors.white )),
-                  onPressed: gridBtnswitchState ?  () => {showGrid()} : null
-              ),
-              ElevatedButton(
-            style:ElevatedButton.styleFrom(
-            primary: Colors.redAccent),
-            child: Text("Start", style: TextStyle(fontSize: 20,color:Colors.white )),
-            onPressed: startBtnswitchState ?  () => {newMonth()} : null
-            ),
-            IconButton(icon: Icon(Icons.save), onPressed: saveBtnswitchState ? () => {save()} :null),
+              //        IconButton(icon: Icon(Icons.calendar_today), onPressed: showGrid()),
 
-           ]
-        ),
-        drawer: showMyMenu(context,[1,2,3],_repository),
-        body:
-        SingleChildScrollView(
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(primary: Colors.redAccent),
+                  child: Text("Start",
+                      style: TextStyle(fontSize: 20, color: Colors.white)),
+                  onPressed: startBtnswitchState ? () => {newMonth()} : null),
+              IconButton(
+                  icon: Icon(Icons.save),
+                  onPressed: saveBtnswitchState ? () => {save()} : null),
+            ]),
+        drawer: showMyMenu(context, [1, 2, 3], _repository),
+        body: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child:
-                      Row(children: BuildColumns())
-             //       )
-        )
-       // )
+            child: Row(children: BuildColumns())
+            //       )
+            )
+        // )
 
-    );
+        );
   }
 
   void onReorder(int oldIndex, int newIndex) {
@@ -113,111 +101,68 @@ class _adminuiState extends State<adminui> {
     }
 
     setState(() {
-
-      List<PlayersinfoandBookedDates> info = columnData[columnData.length-1];
+      List<PlayersinfoandBookedDates> info = columnData[columnData.length - 1];
       PlayersinfoandBookedDates u = info[oldIndex];
       info.removeAt(oldIndex);
       info.insert(newIndex, u);
     });
   }
-  setFreeze() async{
+
+  setFreeze() async {
     await _repository.freezedatabase();
   }
 
   newMonth() async {
     List<Widget> items = [];
     int count = 1;
-    int day;
+    int? day;
     //we want the calendar to start on first MWF that does not have matchs and must do this step as
     //the datepicker will throw if start date is not one of the selectableDayPredicate (nuts)
     DateTime start = DateTime.now();
     for (int i = 0; i < 31; i++) {
-     if (_decideWhichDayToEnable(start))
-       break;
-     start = start.add(new Duration(days: 1));
+      if (_decideWhichDayToEnable(start)) break;
+      start = start.add(new Duration(days: 1));
     }
 
     picked = await showDatePicker(
-      context: context,
-      initialDate: start,
-      // Refer step 1
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2025),
-        selectableDayPredicate: _decideWhichDayToEnable
-    );
+        context: context,
+        initialDate: start,
+        // Refer step 1
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2025),
+        selectableDayPredicate: _decideWhichDayToEnable);
     //get the bookable days in the month
     _DatesMonth = CustomCalendar().getMonthCalendar(
-        picked.month,picked.day, DateTime.now().year,
+        picked!.month, picked!.day, yearofmatch,
         startWeekDay: StartWeekDay.monday);
     //find the first MWF of selected  month
 
-    day = picked.day;
-    bookingsresp = await _repository.getMonthStatus(picked.month.toString());
-
-    setState(() {
-      startBtnswitchState = false;
-      saveBtnswitchState = true;
-      //each match has a list of 4 players. add N previous days of matchs so admin can see previous bookings
-   /*   Iterable reversed = allmatchs.reversed;
-      Iterator iter = reversed.iterator;
-      List<PlayersinfoandBookedDates> playersforday = [];
-      int ii = 0;
-      int currentday;
-      while (iter.moveNext()) {
-        if (ii != 0 && iter.current.day != currentday) {
-          columnData.insert(0, playersforday);
-          playersforday = [];
-        }
-        for (int i = 0; i <= 3; i++) {
-          PlayersinfoandBookedDates player = PlayersinfoandBookedDates(
-              Id: i,
-              Name: " ",
-              Month: iter.current.month,
-              status: " ",
-              level: 1,
-              timesCaptain: 3,
-              day: iter.current.day,
-              bIsCaptain: false);
-          player.Name = iter.current.players[i];
-          playersforday.add(player);
-        }
-
-        currentday = iter.current.day;
-        ii = 1;
-      }
-      if (playersforday.length > 0)
-        columnData.insert(0, playersforday);   */
-      columnData.add(getPlayersforDay(bookingsresp.datesandstatus, picked));
-    });
+    day = picked?.day;
+    bookingsresp = await _repository.getMonthStatus(picked!);
+    startBtnswitchState = false;
+    saveBtnswitchState = true;
+    addColumn();
   }
 
   addColumn() async {
-
-
-    setState(() {
-      columnData
-          .add(getPlayersforDay(bookingsresp.datesandstatus, picked));
-    });
-  }
-  showGrid(){
-    List<Match> matchs = allmatchs.where((element) => element.month == 6).toList();
-    Navigator.push(
-        context,
-        MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
-            builder: (context) => UserMatchsDataGrid(matchs)
-
-
-        )
-    );
-
-
-
-
+    List<PlayersinfoandBookedDates> players =
+        getPlayersforDay(bookingsresp.datesandstatus, picked!);
+    if (players.length < 4) {
+      _showDialog('no players for this day', false);
+      _DatesMonth?.removeAt(0);
+      picked = _DatesMonth?.first.date;
+      addColumn();
+    } else
+      setState(() {
+        dates.add(picked!);
+        columnData.add(players);
+      });
   }
 
   List<Widget> BuildColumns() {
     var widg3;
     List<Widget> dayInfo = [];
+
     int editablecol = columnData.length - 1;
     int col = 0;
     double width = 400;
@@ -225,17 +170,16 @@ class _adminuiState extends State<adminui> {
     while (iter.moveNext()) {
       //   columnData.forEach((list) {
       List<PlayersinfoandBookedDates> list = iter.current;
-      if (col > 6) break;
+      if (col > 30) break;
       //  if (list.first.day == selectedDate.day)
       //       var tt =0;
-      String p =
-          months[list.first.Month-1] + ' ' + list.first.day.toString();
+      String p = months[list.first.Month! - 1] + ' ' + dates[col].day.toString();
       width = 400;
       if (col != editablecol) width = 200;
       widg3 =
           new Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      //         Expanded(
-   //           child:
+        //         Expanded(
+        //           child:
         Container(
             width: width,
             height: 70,
@@ -297,6 +241,7 @@ class _adminuiState extends State<adminui> {
                       )))
       ]);
       col++;
+      if (col > 7) dayInfo.removeAt(0);
       dayInfo.add(widg3);
     }
 
@@ -305,25 +250,28 @@ class _adminuiState extends State<adminui> {
 
   save() async {
     List<Match> matches = [];
-    List<PlayersinfoandBookedDates> info = columnData[columnData.length-1];
+    List<PlayersinfoandBookedDates> info = columnData[columnData.length - 1];
     int count = 1;
     int playercnt = 0;
     List<String> players = [];
-    String Captain = "not";
+    String? Captain = "not";
     for (int i = 0; i < info.length; i++) {
       double width = 0;
 
-      if (info[i].bIsCaptain)
-         Captain = info[i].user.Name;
-      players.add(info[i].user.Name);
+      if (info[i].bIsCaptain == true) Captain = info[i].user?.Name;
+      players.add(info[i].user!.Name!);
       if (count % 4 == 0) {
+        if (Captain == "not") {
+          _showDialog('all matchs must have a Captain', true);
+          return;
+        }
         Match m = new Match();
         m.id = 1;
-        m.day = picked.day;
-        m.month = picked.month;
+        m.day = picked?.day;
+        m.month = picked?.month;
+        m.year = picked?.year;
         m.level = 1;
         m.Captain = Captain;
-
 
         m.players = players;
         matches.add(m);
@@ -334,18 +282,28 @@ class _adminuiState extends State<adminui> {
 
       count++;
     }
-    response = await _repository.saveMatches(matches);
-    //the first column becomes new day to be editted
-    _DatesMonth.removeAt(0);
-    picked = _DatesMonth.first.date;
-    for (int i = 0; i < _DatesMonth.length; i++) {
-      if (_DatesMonth[i].date.weekday == 1 ||
-          _DatesMonth[i].date.weekday == 3 ||
-          _DatesMonth[i].date.weekday == 5) {
-        picked = _DatesMonth[i].date;
-        break;
-      }
+//   check for players not matched and set level to 99 for them
+    if (players.length > 0) {
+      Match m = new Match();
+      m.id = 1;
+      m.day = picked?.day;
+      m.month = picked?.month;
+      m.year = picked?.year;
+      m.level = 99;
+      m.players = players;
+      matches.add(m);
     }
+
+    response = await _repository.saveMatches(matches);
+
+    //the first column becomes new day to be editted
+    _DatesMonth?.removeAt(0);
+    if (_DatesMonth!.isEmpty) {
+      _showDialog('that all Folks', false);
+      return;
+    }
+    picked = _DatesMonth?.first.date;
+    bookingsresp = await _repository.getMonthStatus(picked!); //CLUDGE
     //no captains assigned by default
     for (int i = 0; i < 12; i++) {
       hasCaptain[i] = false;
@@ -358,35 +316,47 @@ class _adminuiState extends State<adminui> {
     int count = 1;
     List<PlayersinfoandBookedDates> playersforday = [];
     for (int i = 0; i < datesandstatus.length; i++) {
-      List<String> daystatus = datesandstatus[i].status.split(',');
-      if (daystatus[selectedDate.day] != '0') continue;
+      List<String>? daystatus = datesandstatus[i].status?.split(',');
+      if (daystatus?[selectedDate.day] != '0')
+        continue; //only thos avaiable and want to play
+
+      //need new reference
+      //   PlayersinfoandBookedDates newInfo = PlayersinfoandBookedDates.fromJson(datesandstatus[i].toJson());;
+      //    newInfo.user = User.fromJson(datesandstatus[i].user.toJson());;
       datesandstatus[i].bIsCaptain = false;
       datesandstatus[i].day = selectedDate.day;
       playersforday.add(datesandstatus[i]);
     }
-    playersforday.sort((a, b) => a.user.level.compareTo(b.user.level));;
-    return playersforday;;
+ //   playersforday.sort((a, b) => a.user?.level?.compareTo(b.user.level));
+    ;
+    return playersforday;
+    ;
   }
 
   bool _decideWhichDayToEnable(DateTime day) {
-    List<Match> filter = allmatchs.where((element) => element.month == day.month && element.day == day.day).toList();
-    if (filter.length > 0)
-      return false;
+    List<Match> filter = allmatchs
+        .where(
+            (element) => element.month == day.month && element.day == day.day)
+        .toList();
+    if (filter.length > 0) return false;
     if (day.weekday == 1 || day.weekday == 3 || day.weekday == 5) return true;
     return false;
   }
-  void _showDialog(String err) {
+
+  void _showDialog(String err, bool isError) {
+    String message = "";
+    if (isError) message = "internal logic error";
     // flutter defined function
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("internal logic error"),
+          title: new Text(message),
           content: new Text(err),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
-            new FlatButton(
+            new TextButton(
               child: new Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -397,7 +367,9 @@ class _adminuiState extends State<adminui> {
       },
     );
   }
-  List<Widget> getPlayers(  List<PlayersinfoandBookedDates> playersforday, int col, editablecol) {
+
+  List<Widget> getPlayers(
+      List<PlayersinfoandBookedDates> playersforday, int col, editablecol) {
     List<Widget> items = [];
 
     int count = 1;
@@ -407,8 +379,7 @@ class _adminuiState extends State<adminui> {
     for (int i = 0; i < playersforday.length; i++) {
       double width = 0;
       //can only have one captain per team
-      if (count % 4 == 0)
-        width = 16;
+      if (count % 4 == 0) width = 16;
 
       count++;
       var temp = Column(
@@ -431,43 +402,50 @@ class _adminuiState extends State<adminui> {
                 Flexible(
                     flex: 3,
                     fit: FlexFit.tight,
-                    child: Text(playersforday[i].user.Name)),
+                    child: Text(playersforday[i].user!.Name!)),
                 col == editablecol
-                    ? Flexible(flex: 1,
-                    fit: FlexFit.tight,
-                    child: Text(playersforday[i].user.timesCaptain.toString()))
-                    : Container(),
-                col == editablecol
-                    ? Flexible(flex: 1, fit: FlexFit.tight, child: Text(playersforday[i].user.level.toString()))
+                    ? Flexible(
+                        flex: 1,
+                        fit: FlexFit.tight,
+                        child: Text(
+                            playersforday[i].user!.timesCaptain.toString() +
+                                ' ' +
+                                playersforday[i].user!.notused.toString()))
                     : Container(),
                 col == editablecol
                     ? Flexible(
-                    flex: 1,
-                    fit: FlexFit.tight,
-                    child: Checkbox(
-                        value: playersforday[i].bIsCaptain,
-                        onChanged: (value) {
-                          setState(() {
-                            int teamnumber =(i~/4);
-                            bool captainassigned = hasCaptain[teamnumber];
+                        flex: 1,
+                        fit: FlexFit.tight,
+                        child: Text(playersforday[i].user!.level.toString()))
+                    : Container(),
+                col == editablecol
+                    ? Flexible(
+                        flex: 1,
+                        fit: FlexFit.tight,
+                        child: Checkbox(
+                            value: playersforday[i].bIsCaptain,
+                            onChanged: (value) {
+                              setState(() {
+                                int teamnumber = (i ~/ 4);
+                                bool captainassigned = hasCaptain[teamnumber];
 
-                            if (value) {
-                              if (captainassigned){
-                                _showDialog("only one captain per team");
-                                return;
-                              }
+                                if (value == true) {
+                                  if (captainassigned) {
+                                    _showDialog(
+                                        "only one captain per team", true);
+                                    return;
+                                  }
 
-                              playersforday[i].user.timesCaptain += 1;
-                              hasCaptain[teamnumber] = true;
-                            }
-                            else {
-                              playersforday[i].user.timesCaptain -= 1;
-                              hasCaptain[teamnumber] = false;
-                            }
-                            playersforday[i].bIsCaptain =
-                            !playersforday[i].bIsCaptain;
-                          });
-                        }))
+                                  playersforday[i].user?.timesCaptain += 1;
+                                  hasCaptain[teamnumber] = true;
+                                } else {
+                                  playersforday[i].user?.timesCaptain -= 1;
+                                  hasCaptain[teamnumber] = false;
+                                }
+                                playersforday[i].bIsCaptain =
+                                    !playersforday[i].bIsCaptain;
+                              });
+                            }))
                     : Container(),
               ]),
               //    controlAffinity: ListTileControlAffinity.leading,
@@ -489,7 +467,6 @@ class _adminuiState extends State<adminui> {
       );
       items.add(temp);
     }
-
 
     return items;
   }

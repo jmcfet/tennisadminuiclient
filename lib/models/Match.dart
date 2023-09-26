@@ -7,19 +7,21 @@ part 'Match.g.dart';
 
 
 class Match{
-  int id;
-  int month;
-  int day;
-  int level;
-  String Captain;
-  List<String> players;
+  int? id;
+  int? year;
+  int? month;
+  int? day;
+  int? level;
+  String? Captain;
+  List<String>? players;
 
-  Match({this.id,this.month,this.day,this.level,this.Captain,this.players});
+  Match({this.id,this.year,this.month,this.day,this.level,this.Captain,this.players});
 
   Match.fromJSON(Map<String, dynamic> json) {
 
     id =  json['id'] as int ;
     month =  json['month'] as int;
+    year =  json['year'] as int;
     day =  json['day'] as int;
     level =  json['level'] as int;
     var playersJSON = json['players'];

@@ -18,14 +18,13 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  json_annotation: ^2.0.0
-  http: ^0.12.0
-  rxdart: ^0.20.0
-  syncfusion_flutter_datagrid:
-    path: C:\Program Files (x86)\Syncfusion\Essential Studio\Flutter\19.1.0.54\Packages\flutter_datagrid
+  json_annotation: ^4.8.1
+  http: ^1.1.0
+
+
   flutter:
     sdk: flutter
 
@@ -35,8 +34,8 @@ dependencies:
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
-  json_serializable: ^2.0.2
-  build_runner: ^1.0.0
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.6
   flutter_test:
     sdk: flutter
 

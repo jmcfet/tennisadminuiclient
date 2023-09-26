@@ -14,12 +14,10 @@ class UserRepository{
   Future<UsersResponse>  saveMatches  (List<Match> matches)  async {
     return _apiProvider.saveMatches(matches);
   }
-  Future<BookedDatesResponse> getMonthStatus(String month) async{
-    return _apiProvider.getMonthStatus( month);
+  Future<BookedDatesResponse> getMonthStatus(DateTime picked) async{
+    return _apiProvider.getMonthStatus( picked);
   }
-  Future<MatchsResponse> getAllMatchs() async{
-    return _apiProvider.getAllMatchs( );
-  }
+
 
   Future<bool> freezedatabase() async{
     bool y = true;

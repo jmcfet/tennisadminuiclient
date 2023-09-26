@@ -9,7 +9,7 @@ Drawer showMyMenu(context,List<int> indexes ,UserRepository _repository){
     child: DrawerHeader(
 
         margin: EdgeInsets.all(0.0),
-        padding: EdgeInsets.all(0.0)
+        padding: EdgeInsets.all(0.0), child: null,
     ),
   );
   items.add(header);
@@ -28,11 +28,9 @@ Drawer showMyMenu(context,List<int> indexes ,UserRepository _repository){
       case 2:
         tile = new ListTile(
           title: Text('Freeze DB'),
-          onTap: () {
+          onTap: ()  async {
+            await _repository.freezedatabase();
 
-      //      Navigator.pop(context);
-     //       Navigator.of(context).push(MaterialPageRoute(
-    //            builder: (BuildContext context) => LoginSignUpPage(onSignedIn:null,userInfo:true)));
           },
         );
         break;
@@ -40,12 +38,8 @@ Drawer showMyMenu(context,List<int> indexes ,UserRepository _repository){
       case 3:
         tile = new ListTile(
           title: Text('Unfreeze DB'),
-          onTap: () {
-
-            Navigator.pop(context);
-  //          Navigator.of(context).push(MaterialPageRoute(
-  //              builder: (BuildContext context) => RoutineList(routines:Globals.routines  )));
-
+          onTap: () async {
+            await _repository.freezedatabase();
 
           },
         );

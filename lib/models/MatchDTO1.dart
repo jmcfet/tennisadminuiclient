@@ -7,12 +7,12 @@ part 'MatchDTO.g.dart';
 
 
 class MatchDTO{
-  int id;
-  int month;
-  int day;
-  int level;
-  String Captain;
-  List<String> players;
+  int? id;
+  int? month;
+  int? day;
+  int? level;
+  String? Captain;
+  List<String>? players;
 
   MatchDTO({this.id,this.month,this.day,this.level,this.Captain,this.players});
 

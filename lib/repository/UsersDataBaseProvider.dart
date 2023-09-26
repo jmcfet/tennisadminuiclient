@@ -9,12 +9,23 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 class UsersDBProvider {
-  String scheme = 'https';
-//  String server = 'landingstennis.com';
+ String scheme = 'https';
+ int port = 443;
+String server = 'landingstennis.com';
 
+// String server = 'localhost';
+// int port = 52175;
+
+//  String scheme = 'https';
+//String scheme = 'http';
+
+/*
   String server = 'localhost';
-  int port = 44330;
 
+  int port = 52175;
+
+  String scheme = 'http';
+*/
 
   UsersDBProvider() {
 
@@ -37,7 +48,7 @@ class UsersDBProvider {
 
     } catch (error, stacktrace) {
          print("Exception occured: $error stackTrace: $stacktrace");
-         resp.error = error;
+         resp.error = error.toString();
          return resp;
     }
     resp.users = list.map((model) => User.fromJson(model)).toList();
@@ -45,12 +56,13 @@ class UsersDBProvider {
   }
 
 
-  Future<BookedDatesResponse>  getMonthStatus(String month) async {
+  Future<BookedDatesResponse>  getMonthStatus(DateTime picked) async {
     BookedDatesResponse resp = new BookedDatesResponse();
     var response;
     Iterable list;
     var queryParameters1 = {
-      'month': month
+      'month': picked.month.toString(),
+      'year' : picked.year.toString()
 
     };
     var url = new Uri(scheme: scheme,
@@ -66,37 +78,13 @@ class UsersDBProvider {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.error = error.toString();
       return resp;
     }
     resp.datesandstatus = list.map((model) => PlayersinfoandBookedDates.fromJson(model)).toList();
     return resp;
   }
-  Future<MatchsResponse>  getAllMatchs() async {
-    MatchsResponse resp = new MatchsResponse();
-    var response;
-    Iterable list;
 
-    var url = new Uri(scheme: scheme,
-        host: server,
-        port: port,
-
-        path: '/api/Account/GetAllMatchs',
-
-    );
-    try {
-      response = await http.get(url);
-      list = json.decode(response.body);
-
-    } catch (error, stacktrace) {
-      print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
-      return resp;
-    }
-    resp.matches  = list.map((model) => Match.fromJSON(model)).toList();
-
-    return resp;
-  }
   Future<UsersResponse>  saveMatches(List<Match> matches) async {
     UsersResponse resp = new UsersResponse();
     String js = jsonEncode(matches);
@@ -120,7 +108,7 @@ class UsersDBProvider {
         resp.error = response.statusCode.toString() + ' ' + response.body;
       }
     } catch (e) {
-      resp.error = e.message;
+ //     resp.error = e.e;
     }
 
     return resp;
@@ -150,7 +138,7 @@ class UsersDBProvider {
   //        headers: {HttpHeaders.authorizationHeader: authorization}
 
       );
-      String test = json.decode(response.body);
+  //    String test = json.decode(response.body);
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
@@ -182,7 +170,7 @@ class UsersDBProvider {
         //        headers: {HttpHeaders.authorizationHeader: authorization}
 
       );
-      String test = json.decode(response.body);
+ //     String test = json.decode(response.body);
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
